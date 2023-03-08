@@ -390,7 +390,7 @@ public class Connection implements AutoCloseable {
 
         while (getNumUnconfirmedAPdusSent() >= settings.getMaxNumOfOutstandingIPdus()) {
             try {
-                System.out.println("Ich Warte auf den Bus!");
+//                System.out.println("Ich Warte auf den Bus!");
                 this.wait();
             } catch (InterruptedException e) {
                 throw new IOException(e);
