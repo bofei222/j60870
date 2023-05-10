@@ -20,3 +20,8 @@ GNU GENERAL PUBLIC LICENSE
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 ```
+
+## 主版本 1.6.1
+
+## 报文录播版本1.7.1
+
