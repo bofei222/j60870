@@ -1383,7 +1383,7 @@ public class Connection implements AutoCloseable {
 
 
     private void writeLog(int length) {
-        channelRecord.put("M07:2409", true); // TODO
+//        channelRecord.put("M07:2409", true); // TODO
         String serverName = this.settings.getServerName();
         if (null != serverName && !"".equals(serverName)) {
             Boolean messageRecordFlag = channelRecord.get(serverName);
@@ -1401,7 +1401,7 @@ public class Connection implements AutoCloseable {
     }
     private void readerLog(APdu aPdu) {
         int length = aPdu.encode(responseBuffer, settings);
-        channelRecord.put("M07:2409", true); // TODO
+//        channelRecord.put("M07:2409", true); // TODO
         String serverName = settings.getServerName();
         if (null != serverName && !"".equals(serverName)) {
             Boolean messageRecordFlag = channelRecord.get(serverName);
