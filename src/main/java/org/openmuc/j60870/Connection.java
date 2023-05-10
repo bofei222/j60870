@@ -1395,7 +1395,7 @@ public class Connection implements AutoCloseable {
                 for (byte b : b1) {
                     sb.append(String.format("%02X ", b));
                 }
-                LOGGER.error("{}-TX:{}", serverName, sb);
+                LOGGER.error("TX:{}", sb);
             }
         }
     }
@@ -1413,7 +1413,7 @@ public class Connection implements AutoCloseable {
                 for (byte b : b1) {
                     sb.append(String.format("%02X ", b));
                 }
-                LOGGER.error("{}-RX:{}", serverName, sb);
+                LOGGER.error("RX:{}", sb);
             }
         }
     }
