@@ -23,16 +23,17 @@ package org.openmuc.j60870;
 import org.openmuc.j60870.APdu.ApciType;
 import org.openmuc.j60870.ie.*;
 import org.openmuc.j60870.internal.SerialExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.text.MessageFormat;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 /**
  * Represents an open connection to a specific 60870 server. It is created either through an instance of
@@ -51,6 +52,12 @@ import java.util.concurrent.TimeUnit;
  * </p>
  */
 public class Connection implements AutoCloseable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
+
+    public static ConcurrentHashMap<String, Boolean> channelRecord = new ConcurrentHashMap<>();
+    // 添加总开关
+    public static AtomicBoolean channelSwitch = new AtomicBoolean(false);
+
     private static final byte[] TESTFR_CON_BUFFER = new byte[]{0x68, 0x04, (byte) 0x83, 0x00, 0x00, 0x00};
     private static final byte[] TESTFR_ACT_BUFFER = new byte[]{0x68, 0x04, (byte) 0x43, 0x00, 0x00, 0x00};
     private static final byte[] STARTDT_ACT_BUFFER = new byte[]{0x68, 0x04, 0x07, 0x00, 0x00, 0x00};
@@ -63,6 +70,7 @@ public class Connection implements AutoCloseable {
     private final DataOutputStream os;
     private final ConnectionSettings settings;
     private final byte[] buffer = new byte[255];
+    private final byte[] responseBuffer = new byte[255];
     private final TimeoutManager timeoutManager;
     private final TimeoutTask maxTimeNoTestConReceived;
     private final TimeoutTask maxTimeNoAckReceived;
@@ -422,6 +430,7 @@ public class Connection implements AutoCloseable {
 
         int length = requestAPdu.encode(buffer, settings);
         os.write(buffer, 0, length);
+        writeLog(length);
         os.flush();
         resetMaxIdleTimeTimer();
     }
@@ -1179,6 +1188,8 @@ public class Connection implements AutoCloseable {
                 while (true) {
                     final APdu aPdu = APdu.decode(socket, settings);
 
+                    readerLog(aPdu);
+
                     synchronized (Connection.this) {
 
                         switch (aPdu.getApciType()) {
@@ -1370,6 +1381,47 @@ public class Connection implements AutoCloseable {
                 }
             }
             Connection.this.notifyAll();
+        }
+    }
+
+
+    private void writeLog(int length) {
+        if (!channelSwitch.get()) { // 添加总开关，减少map 的获取，减少字符串的判断
+            return;
+        }
+        String serverName = this.settings.getServerName();
+        if (null != serverName && !"".equals(serverName)) {
+            Boolean messageRecordFlag = channelRecord.get(serverName);
+            if (null != messageRecordFlag && messageRecordFlag) {
+                byte[] b1 = new byte[length];
+                System.arraycopy(buffer, 0, b1, 0, length);
+                StringBuilder sb = new StringBuilder();
+
+                for (byte b : b1) {
+                    sb.append(String.format("%02X ", b));
+                }
+                LOGGER.error("TX:{}", sb);
+            }
+        }
+    }
+    private void readerLog(APdu aPdu) {
+        if (!channelSwitch.get()) { // 添加总开关，减少map 的获取，减少字符串的判断
+            return;
+        }
+        String serverName = settings.getServerName();
+        if (null != serverName && !"".equals(serverName)) {
+            Boolean messageRecordFlag = channelRecord.get(serverName);// TODO channelRecord容量限制。 时间控制，自动关闭，。
+            if (null != messageRecordFlag && messageRecordFlag) {
+                int length = aPdu.encode(responseBuffer, settings);  //  不放到第一行
+                byte[] b1 = new byte[length];
+                System.arraycopy(responseBuffer, 0, b1, 0, length);
+                StringBuilder sb = new StringBuilder();
+
+                for (byte b : b1) {
+                    sb.append(String.format("%02X ", b));
+                }
+                LOGGER.error("RX:{}", sb);
+            }
         }
     }
 

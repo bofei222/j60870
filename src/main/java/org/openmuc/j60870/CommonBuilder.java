@@ -178,6 +178,11 @@ abstract class CommonBuilder<T extends CommonBuilder<T, C>, C> {
         return self();
     }
 
+    public T setServerName(String serverName) {
+        settings.setServerName(serverName);
+        return self();
+    }
+
     public T useSharedThreadPool() {
         settings.setUseSharedThreadPool(true);
         return self();

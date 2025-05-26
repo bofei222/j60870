@@ -24,6 +24,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 class ConnectionSettings {
+
+
+    private String serverName;
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String chanelName) {
+        this.serverName = chanelName;
+    }
+
     private static final ExecutorService threadPool;
     private static volatile int numOpenConnections;
 
@@ -68,7 +80,7 @@ class ConnectionSettings {
     public ConnectionSettings(ConnectionSettings connectionSettings) {
 
         messageFragmentTimeout = connectionSettings.messageFragmentTimeout;
-
+        serverName = connectionSettings.serverName;
         cotFieldLength = connectionSettings.cotFieldLength;
         commonAddressFieldLength = connectionSettings.commonAddressFieldLength;
         ioaFieldLength = connectionSettings.ioaFieldLength;

@@ -99,7 +99,7 @@ public class ClientServerITest {
 
             clientConnection.interrogation(commonAddress, CauseOfTransmission.ACTIVATION,
                     new IeQualifierOfInterrogation(20));
-
+            new InformationObject(1, new IeTime56(System.currentTimeMillis()));
             clientConnection.send(
                     new ASdu(ASduType.M_SP_NA_1, false, CauseOfTransmission.SPONTANEOUS, false, false, 0, commonAddress,
                             new InformationObject[]{
@@ -200,6 +200,7 @@ public class ClientServerITest {
 
                     IeSingleCommand singleCommand = (IeSingleCommand) aSdu.getInformationObjects()[0]
                             .getInformationElements()[0][0];
+
                     assertTrue(singleCommand.isCommandStateOn());
                     assertTrue(singleCommand.isSelect());
                     assertEquals(3, singleCommand.getQualifier());
@@ -423,6 +424,7 @@ public class ClientServerITest {
                                             new InformationElement[][]{{
                                                     new IeBinaryCounterReading(-300, 5, Flag.CARRY, Flag.INVALID,
                                                             Flag.COUNTER_ADJUSTED),
+                                                    new IeTime56(serverTimestamp)},{
                                                     new IeTime56(serverTimestamp)}})}));
                     System.out.println("Server: 17");
                     serverConnection.send(new ASdu(ASduType.PRIVATE_136, false, 1, CauseOfTransmission.SPONTANEOUS,
