@@ -32,6 +32,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.text.MessageFormat;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -54,6 +55,8 @@ public class Connection implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
 
     public static ConcurrentHashMap<String, Boolean> channelRecord = new ConcurrentHashMap<>();
+    // 添加总开关
+    public static AtomicBoolean channelSwitch = new AtomicBoolean(false);
 
     private static final byte[] TESTFR_CON_BUFFER = new byte[]{0x68, 0x04, (byte) 0x83, 0x00, 0x00, 0x00};
     private static final byte[] TESTFR_ACT_BUFFER = new byte[]{0x68, 0x04, (byte) 0x43, 0x00, 0x00, 0x00};
@@ -1383,7 +1386,9 @@ public class Connection implements AutoCloseable {
 
 
     private void writeLog(int length) {
-//        channelRecord.put("M07:2409", true); // TODO
+        if (!channelSwitch.get()) { // 添加总开关，减少map 的获取，减少字符串的判断
+            return;
+        }
         String serverName = this.settings.getServerName();
         if (null != serverName && !"".equals(serverName)) {
             Boolean messageRecordFlag = channelRecord.get(serverName);
@@ -1400,12 +1405,14 @@ public class Connection implements AutoCloseable {
         }
     }
     private void readerLog(APdu aPdu) {
-        int length = aPdu.encode(responseBuffer, settings);
-//        channelRecord.put("M07:2409", true); // TODO
+        if (!channelSwitch.get()) { // 添加总开关，减少map 的获取，减少字符串的判断
+            return;
+        }
         String serverName = settings.getServerName();
         if (null != serverName && !"".equals(serverName)) {
-            Boolean messageRecordFlag = channelRecord.get(serverName);
+            Boolean messageRecordFlag = channelRecord.get(serverName);// TODO channelRecord容量限制。 时间控制，自动关闭，。
             if (null != messageRecordFlag && messageRecordFlag) {
+                int length = aPdu.encode(responseBuffer, settings);  //  不放到第一行
                 byte[] b1 = new byte[length];
                 System.arraycopy(responseBuffer, 0, b1, 0, length);
                 StringBuilder sb = new StringBuilder();
