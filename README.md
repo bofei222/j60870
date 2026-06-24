@@ -23,5 +23,5 @@ GNU GENERAL PUBLIC LICENSE
 
 ## 主版本 1.6.1
 
-## 报文录播版本1.7.1
+## 报文录播版本1.7.3
 
